@@ -6,7 +6,7 @@ import argparse
 import time
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+start = time.perf_counter()
 # color
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
@@ -20,6 +20,7 @@ count = 0
 time_out = 0
 connection_error = 0
 delay = 0
+found = 0
 
 parse = argparse.ArgumentParser(
     prog='GhostDir',
@@ -99,8 +100,8 @@ def request(url, word):
     global count
     global connection_error
     global time_out
+    global found
     status_code = [200, 201, 204, 301, 302, 307, 403, 405, 500]
-
     count += 1
     full_path = f"{url}/{word.strip()}"
 
@@ -130,8 +131,8 @@ def request(url, word):
             return
 
         if response.status_code in status_code and len(response.content) > 0:
-            print("\r", end="")
-            print(f"{GREEN}[+] {full_path:<50} [Status: {response.status_code}] [Size: {len(response.content)} B]{END}")
+            found += 1
+            print(f"{CYAN} => {END}{GREEN}[+] {word.strip()} [Status: {response.status_code}] [Size: {len(response.content)} B]{END}")
         else:
             print(
                 f'{DARK_GRAY}\r[*] Requests sent: {count} '
@@ -160,6 +161,7 @@ def banner():
 ╚██████╔╝██║  ██║╚██████╔╝███████║   ██║   ██████╔╝██║██║  ██║
  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═════╝ ╚═╝╚═╝  ╚═╝
 
+{CYAN}            By: Ali Waled{END}
 {GREEN}            GhostDir v1.0{END}
 {YELLOW}      Directory & File Discovery Tool{END}
 
@@ -185,6 +187,11 @@ with open(wordlist,'r',encoding='latin-1') as words:
         with ThreadPoolExecutor(max_workers=threads) as ex:
             for word in words:
                 ex.submit(request,url,word)
+
+end = time.perf_counter()
+elapsed = end - start
+print(f"\n{CYAN}[*] Scan completed in {elapsed:.2f}s{END}")
+print(f"{GREEN}[*] Total requests: {count} | Found: {found}{END}")
 
 
 

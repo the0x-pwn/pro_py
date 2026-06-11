@@ -5,6 +5,7 @@ import os
 import argparse
 import time
 import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # color
 RED = "\033[0;31m"
@@ -28,7 +29,7 @@ parse = argparse.ArgumentParser(
 
 parse.add_argument('-u','--url',required=True,metavar="This flag takes the target value",type=str)
 parse.add_argument('-w','--wordlist',required=True,type=str,metavar="This flag takes on the value of the brute force list")
-parse.add_argument('--timeout',required=False,default=5,type=int,metavar="This flag takes a numerical value to determine the delay time")
+parse.add_argument('--timeout',required=False,default=10,type=int,metavar="This flag takes a numerical value to determine the delay time")
 parse.add_argument('-t','--threads',required=False,type=int,default=30,metavar="This flag takes into account the speed at which orders are sent")
 parse.add_argument('-fc',required=False,default=None,type=lambda x : [int(i) for i in x.split(',')],metavar="This flag takes value by taking unwanted responses")
 parse.add_argument('-fs',required=False,default=None,type=lambda x: [int(i) for i in x.split(',')],metavar="This flag takes a value that represents the size of the pages that are not desired to be displayed")
@@ -70,9 +71,6 @@ if mode == 'burp':
 elif mode == "fast":
     threads = min(threads, 50) 
 
-if mode == "burp":
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 # check url
 def check_url():
     global url
@@ -101,6 +99,7 @@ def request(url, word):
     global count
     global connection_error
     global time_out
+    status_code = [200, 201, 204, 301, 302, 307, 403, 405, 500]
 
     count += 1
     full_path = f"{url}/{word.strip()}"
@@ -130,7 +129,7 @@ def request(url, word):
         if filter_code is not None and response.status_code in filter_code:
             return
 
-        if response.status_code == 200 and len(response.content) > 0:
+        if response.status_code in status_code and len(response.content) > 0:
             print("\r", end="")
             print(f"{GREEN}[+] {full_path:<50} [Status: {response.status_code}] [Size: {len(response.content)} B]{END}")
         else:

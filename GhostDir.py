@@ -132,7 +132,7 @@ def request(url, word):
 
         if response.status_code in status_code and len(response.content) > 0:
             found += 1
-            print(f"{CYAN} => {END}{GREEN}[+] {word.strip()} [Status: {response.status_code}] [Size: {len(response.content)} B]{END}")
+            print(f"{YELLOW} => {END}{GREEN}[+] {word.strip()} [Status: {response.status_code}] [Size: {len(response.content)} B]{END}")
         else:
             print(
                 f'{DARK_GRAY}\r[*] Requests sent: {count} '

@@ -41,7 +41,7 @@ parse.add_argument('-fc',metavar="FILTER CODE",required=False,default=None,type=
 parse.add_argument('-fs',metavar="FILTER SIZE",required=False,default=None,type=lambda x: [int(i) for i in x.split(',')],help="This flag takes a value that represents the size of the pages that are not desired to be displayed")
 parse.add_argument('-H',metavar="HEADERS",required=False,type=str,help="This flag takes the cost of adding a header upon request")
 parse.add_argument('--proxy',metavar="PROXY", default=None,required=False,type=str,help='Route requests through a proxy (e.g. Burp Suite)')
-parse.add_argument('--mode', metavar="MODE",required=False,type=str,choices=['burp', 'fast'],default='fast',help='Run mode: burp (slow) or fast (full speed)')
+parse.add_argument('--mode', metavar="MODE",default=None,required=False,type=str,choices=['burp'],help='Run mode: burp (slow)')
 arg = parse.parse_args()
 
 url = arg.url
@@ -56,27 +56,13 @@ method = arg.X.upper()
 header = arg.H
 headers = {}
 
-if header:
-    for h in header.split(','):
-        if ':' not in h:
-            continue
-        key,value = h.split(':',1)
-        headers[key.strip()] = value.strip()
 
 
-proxies = None
-if proxy is not None:
-    proxies = {
-        "http" : proxy,
-        "https" : proxy
-    }
 
 if mode == 'burp':
     threads = 3
     timeout = max(timeout, 10)
     delay = 0.1
-elif mode == "fast":
-    threads = min(threads, 50) 
 
 # check url
 def check_url():
@@ -99,6 +85,34 @@ def check_word_list():
         sys.exit()
 check_word_list()
 
+def check_method(x):
+    ALLOWED_METHODS = ['GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'PATCH']
+    if method not in ALLOWED_METHODS:
+        print(f"{RED}[-] Invalid method: '{method}'\n[!] Allowed: {', '.join(ALLOWED_METHODS)}{END}")
+        sys.exit()
+check_method(method)
+
+
+def check_header(header_user,stor_header):
+    if header_user:
+        for h in header_user.split(','):
+            if ':' not in h:
+                continue
+            key,value = h.split(':',1)
+            stor_header[key.strip()] = value.strip()
+check_header(header,headers)
+
+
+proxies = None
+def check_proxy(proxy):
+    global proxies
+    if proxy is not None:
+        proxies = {
+            "http" : proxy,
+            "https" : proxy
+        }
+check_proxy(proxy)
+
 
 def format_size(size):
     if size < 1024:
@@ -118,7 +132,8 @@ def request(url, word):
     global time_out
     global found
     status_code = [200, 201, 204, 301, 302, 307, 403, 405, 500]
-    count += 1
+    with lock_loop:
+        count += 1
     full_path = f"{url}/{word.strip()}"
 
     if delay:
@@ -134,11 +149,6 @@ def request(url, word):
             proxies=proxies,
             verify=False
         )
-
-        # burp suite
-        if mode == "burp":
-            print('\n')
-            print(f"[BURP] {response.request.method} {full_path} -> {response.status_code}",flush=True)
 
         if filter_size is not None and len(response.content) in filter_size:
             return
@@ -165,10 +175,12 @@ def request(url, word):
                 )
 
     except requests.exceptions.ConnectionError:
-        connection_error += 1
+        with lock_loop:
+            connection_error += 1
 
     except requests.exceptions.ReadTimeout:
-        time_out += 1
+        with lock_loop:
+            time_out += 1
     
 
 
@@ -193,6 +205,7 @@ def banner():
 {GREEN}[METHOD]{END}   {method}
 {GREEN}[THREADS]{END}    {threads}
 {GREEN}[TIMEOUT]{END}    {timeout}s
+{GREEN}[HEADERS]{END}    {headers}
 {GREEN}[FILTER CODE]{END} {filter_code}
 {GREEN}[FILTER SIZE]{END} {filter_size}
 {GREEN}[MODE]{END} {mode}

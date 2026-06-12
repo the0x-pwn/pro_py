@@ -203,17 +203,17 @@ def banner():
 {YELLOW}      Directory & File Discovery Tool{END}
 
 {CYAN}══════════════════════════════════════════════════════════════════════════════════{END}
-{CYAN}[TARGET]{END}      {url}
-{CYAN}[WORDLIST]{END}    {wordlist}
-{CYAN}[METHOD]{END}      {method}
-{CYAN}[THREADS]{END}     {threads}
-{CYAN}[TIMEOUT]{END}     {timeout}s
-{CYAN}[HEADERS]{END}     {', '.join(f'{k}: {v}' for k, v in headers.items()) if headers else 'None'}
-{CYAN}[FILTER CODE]{END} {filter_code}
-{CYAN}[FILTER SIZE]{END} {filter_size}
-{CYAN}[MODE]{END}        {mode}
-{CYAN}[PROXY]{END}       {proxy}
-{CYAN}[OUTPUT]{END}      {output}
+{CYAN}[TARGET]{END}      :   {url}
+{CYAN}[WORDLIST]{END}    :  {wordlist}
+{CYAN}[METHOD]{END}      :  {method}
+{CYAN}[THREADS]{END}     :  {threads}
+{CYAN}[TIMEOUT]{END}     :  {timeout}s
+{CYAN}[HEADERS]{END}     :  {', '.join(f'{k}: {v}' for k, v in headers.items()) if headers else 'None'}
+{CYAN}[FILTER CODE]{END} :  {filter_code}
+{CYAN}[FILTER SIZE]{END} :  {filter_size}
+{CYAN}[MODE]{END}        :  {mode}
+{CYAN}[PROXY]{END}       :  {proxy}
+{CYAN}[OUTPUT]{END}      :  {output}
 {CYAN}══════════════════════════════════════════════════════════════════════════════════{END}
 """)
     

@@ -6,6 +6,8 @@ import argparse
 import time
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from threading import Lock
+
 start = time.perf_counter()
 # color
 RED = "\033[0;31m"
@@ -13,6 +15,7 @@ GREEN = "\033[0;32m"
 DARK_GRAY = "\033[1;30m"
 CYAN = "\033[1;36m"
 YELLOW = "\033[1;33m"
+BLUE = "\033[0;34m"
 END = "\033[0m"
 
 session = requests.Session()
@@ -21,6 +24,7 @@ time_out = 0
 connection_error = 0
 delay = 0
 found = 0
+lock_loop = Lock()
 
 parse = argparse.ArgumentParser(
     prog='GhostDir',
@@ -94,7 +98,17 @@ def check_word_list():
 check_word_list()
 
 
-   
+def format_size(size):
+    if size < 1024:
+        return f"{DARK_GRAY}{size} B{END}"
+    elif size < 1024 ** 2:
+        return f"{GREEN}{size / 1024:.2f} KB{END}"
+    elif size < 1024 ** 3:
+        return f"{YELLOW}{size / (1024 ** 2):.2f} MB{END}"
+    else:
+        return f"{RED}{size / (1024 ** 3):.2f} GB{END}"
+    
+
 def request(url, word):
     global session
     global count
@@ -122,8 +136,6 @@ def request(url, word):
             print('\n')
             print(f"[BURP] {response.request.method} {full_path} -> {response.status_code}",flush=True)
 
-        
-
         if filter_size is not None and len(response.content) in filter_size:
             return
 
@@ -132,16 +144,21 @@ def request(url, word):
 
         if response.status_code in status_code and len(response.content) > 0:
             found += 1
-            print(f"{YELLOW} => {END}{GREEN}[+] {word.strip()} [Status: {response.status_code}] [Size: {len(response.content)} B]{END}")
+            with lock_loop:
+                print(f"\r{' ' * 100}\r{GREEN}[+] {word.strip()} [Status: {BLUE}{response.status_code}{END}] [Size: {BLUE}{format_size(len(response.content))}{END}]{END}")
         else:
-            print(
-                f'{DARK_GRAY}\r[*] Requests sent: {count} '
-                f'{END}{DARK_GRAY}||{END} '
-                f'{RED}ReadTimeout({time_out}){END} '
-                f'{DARK_GRAY}||{END} '
-                f'{RED}ConnectionError({connection_error}){END}',
-                end=''
-            )
+            with lock_loop:
+                print(
+                    f'{YELLOW}\r[*] Requests sent: {count} '
+                    f'|| '
+                    f'Method({response.request.method}) '
+                    f'|| '
+                    f'ReadTimeout({time_out}) '
+                    f'|| '
+                    f'ConnectionError({connection_error}){END}',
+                    end='',
+                    flush=True
+                )
 
     except requests.exceptions.ConnectionError:
         connection_error += 1
@@ -191,7 +208,7 @@ with open(wordlist,'r',encoding='latin-1') as words:
 end = time.perf_counter()
 elapsed = end - start
 print(f"\n{CYAN}[*] Scan completed in {elapsed:.2f}s{END}")
-print(f"{GREEN}[*] Total requests: {count} | Found: {found}{END}")
+print(f"{CYAN}[*] Total requests: {count} | Found: {found}{END}")
 
 
 

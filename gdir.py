@@ -212,12 +212,11 @@ def banner():
 {GREEN}[PROXY]{END} {proxy}
 
 {CYAN}══════════════════════════════════════════════════════════════{END}
-
 """)
     
 banner()
 
-print('\n')
+
 with open(wordlist,'r',encoding='latin-1') as words:
         with ThreadPoolExecutor(max_workers=threads) as ex:
             for word in words:

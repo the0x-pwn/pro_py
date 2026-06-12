@@ -38,6 +38,7 @@ It helps penetration testers and security researchers discover hidden paths on w
 - Burp mode for slow, controlled scanning
 - Color-coded output for easy reading
 - Human-readable response sizes (B, KB, MB, GB)
+- Save results to output file
 
 ---
 
@@ -77,6 +78,7 @@ python gdir.py -u <URL> -w <WORDLIST> [OPTIONS]
 | `-H` | Custom headers (e.g. `Key:Value,Key2:Value2`) | None |
 | `--proxy` | Proxy URL (e.g. `http://127.0.0.1:8080`) | None |
 | `--mode` | Run mode: `burp` (slow, 3 threads) | None |
+| `-o` | Save results to output file | None |
 
 ---
 
@@ -115,6 +117,11 @@ python gdir.py -u https://example.com -w wordlist.txt -H "Authorization:Bearer t
 **Route through Burp Suite proxy:**
 ```bash
 python gdir.py -u https://example.com -w wordlist.txt --proxy http://127.0.0.1:8080 --mode burp
+```
+
+**Save results to file:**
+```bash
+python gdir.py -u https://example.com -w wordlist.txt -o results.txt
 ```
 
 **Full example:**

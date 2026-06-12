@@ -34,6 +34,7 @@ parse = argparse.ArgumentParser(
 
 parse.add_argument('-u','--url',metavar="URL",required=True,help="This flag takes the target value",type=str)
 parse.add_argument('-w','--wordlist',metavar="WORDLIST",required=True,type=str,help="This flag takes on the value of the brute force list")
+parse.add_argument('-X', metavar="METHOD", required=False, default='GET', type=str, help="HTTP method to use (GET, POST, HEAD, OPTIONS, PUT, DELETE, PATCH)")
 parse.add_argument('-T',metavar="TIMEOUT",required=False,default=10,type=int,help="This flag takes a numerical value to determine the delay time")
 parse.add_argument('-t','--threads',metavar='THREADS',required=False,type=int,default=30,help="This flag takes into account the speed at which orders are sent")
 parse.add_argument('-fc',metavar="FILTER CODE",required=False,default=None,type=lambda x : [int(i) for i in x.split(',')],help="This flag takes value by taking unwanted responses")
@@ -51,6 +52,7 @@ filter_code = arg.fc
 filter_size = arg.fs
 proxy = arg.proxy
 mode = arg.mode
+method = arg.X.upper()
 header = arg.H
 headers = {}
 
@@ -123,7 +125,8 @@ def request(url, word):
         time.sleep(delay)
     
     try:
-        response = session.get(
+        response = session.request(
+            method=method,
             url=full_path,
             headers=headers,
             timeout=timeout,
@@ -131,6 +134,7 @@ def request(url, word):
             proxies=proxies,
             verify=False
         )
+
         # burp suite
         if mode == "burp":
             print('\n')
@@ -151,7 +155,7 @@ def request(url, word):
                 print(
                     f'{YELLOW}\r[*] Requests sent: {count} '
                     f'|| '
-                    f'Method({response.request.method}) '
+                    f'Method({method}) '
                     f'|| '
                     f'ReadTimeout({time_out}) '
                     f'|| '
@@ -186,6 +190,7 @@ def banner():
 
 {GREEN}[TARGET]{END}     {url}
 {GREEN}[WORDLIST]{END}   {wordlist}
+{GREEN}[METHOD]{END}   {method}
 {GREEN}[THREADS]{END}    {threads}
 {GREEN}[TIMEOUT]{END}    {timeout}s
 {GREEN}[FILTER CODE]{END} {filter_code}
